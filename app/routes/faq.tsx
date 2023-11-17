@@ -1,5 +1,6 @@
 import type { MetaFunction } from '@remix-run/node';
-import Layout from '~/components/Layout';
+import Container from '~/components/container';
+import Layout from '~/components/layout';
 
 export const meta: MetaFunction = () => {
 	return [
@@ -11,11 +12,11 @@ export const meta: MetaFunction = () => {
 export default function FAQ() {
 	return (
 		<Layout>
-			<div className="h-[185px]">
+			<Container>
 				<div className="flex items-center justify-center w-full h-full">
 					<h1>Frequently Asked Questions</h1>
 				</div>
-			</div>
+			</Container>
 		</Layout>
 	);
 }

@@ -15,6 +15,9 @@ export default {
 					DEFAULT: '#161616',
 				},
 			},
+			boxShadow: {
+				'2xl': '0 0 50px 0 rgba(0, 0, 0, 0.1)',
+			},
 			// fontFamily: {
 			// 	sans: [
 			// 		'IBMPlexSans',

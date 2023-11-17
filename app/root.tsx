@@ -11,8 +11,9 @@ import {
 
 import tailwindStylesheetUrl from './styles/tailwind.css';
 import fontStylesheetUrl from './styles/fonts.css';
-import Footer from './components/Footer';
-import Navbar from './components/Navbar';
+import Footer from './components/footer';
+import Navbar from './components/navbar';
+import { EpicProgress } from './components/progress-bar';
 
 export const links: LinksFunction = () => [
 	...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
@@ -36,6 +37,8 @@ export default function App() {
 				<Navbar />
 
 				<Outlet />
+
+				<EpicProgress />
 				<ScrollRestoration />
 				<Scripts />
 				<LiveReload />
