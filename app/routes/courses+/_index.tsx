@@ -1,17 +1,18 @@
 import { json, type MetaFunction } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { Outlet, useLoaderData } from '@remix-run/react';
 
 import { ALL_COURSES_QUERY } from '~/utils/graphql.queries';
 import { fetchFromGraphQL } from '~/utils/graphql.server';
 
 import Layout from '~/components/layout';
-import { InputMaybe, Scalars } from '~/utils/graphql.types';
+import { EntryCriteriaInput } from '~/utils/graphql.types';
 import CourseCard from '~/components/course-card';
-import { JSX } from 'react/jsx-runtime';
+import Hero from '~/components/hero';
+import Container from '~/components/container';
 
 export const meta: MetaFunction = () => {
 	return [
-		{ title: 'CDL Online | Courses' },
+		{ title: 'Courses | CDL Online' },
 		{ name: 'description', content: 'Build CDL Online with Remix!' },
 	];
 };
@@ -27,40 +28,21 @@ export default function CoursesIndex() {
 
 	return (
 		<Layout>
-			<div className="h-[185px] border-b border-opacity-30 border-black">
-				<div className="flex items-center justify-center w-full h-full">
-					<h1>Image banner</h1>
-				</div>
-			</div>
-			<div className="container card-wrap mx-auto grid grid-cols-1 px-15 md:px-0 row-gap-30 py-[50px]">
+			<Hero
+				title="Browse Courses"
+				imgUrl="/img/hero-course-library.jpg"
+			/>
+			<Container className="container card-wrap mx-auto grid grid-cols-1 px-15 md:px-0 row-gap-30">
 				{data && data.entries
-					? data.entries.map(
-							(
-								entry: JSX.IntrinsicAttributes & {
-									slug:
-										| InputMaybe<InputMaybe<string>>
-										| undefined;
-									title: string;
-									description: string;
-									id:
-										| InputMaybe<InputMaybe<Number>>
-										| undefined;
-									courseThumbnail: InputMaybe<
-										Array<InputMaybe<Scalars>>
-									>;
-									accessDays:
-										| InputMaybe<InputMaybe<string>>
-										| undefined;
-								}
-							) => (
-								<CourseCard
-									key={`course-${entry.id}`}
-									{...entry}
-								/>
-							)
-					  )
+					? data.entries.map((entry: EntryCriteriaInput) => (
+							<CourseCard
+								key={`course-${entry.id}`}
+								entry={entry}
+							/>
+					  ))
 					: ''}
-			</div>
+				<Outlet />
+			</Container>
 		</Layout>
 	);
 }

@@ -1,5 +1,5 @@
 import { cssBundleHref } from '@remix-run/css-bundle';
-import type { LinksFunction } from '@remix-run/node';
+import { json, type LinksFunction, DataFunctionArgs } from '@remix-run/node';
 import {
 	Links,
 	LiveReload,
@@ -7,13 +7,17 @@ import {
 	Outlet,
 	Scripts,
 	ScrollRestoration,
+	useLoaderData,
 } from '@remix-run/react';
+import { withSentry } from '@sentry/remix';
+import { AuthenticityTokenProvider } from 'remix-utils/csrf/react';
 
 import tailwindStylesheetUrl from './styles/tailwind.css';
 import fontStylesheetUrl from './styles/fonts.css';
 import Footer from './components/footer';
-import Navbar from './components/navbar';
 import { EpicProgress } from './components/progress-bar';
+import { getCraftCsrfToken, getUserId } from './utils/auth.server';
+import Navbar from './components/navbar';
 
 export const links: LinksFunction = () => [
 	...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
@@ -21,7 +25,14 @@ export const links: LinksFunction = () => [
 	{ rel: 'stylesheet', href: tailwindStylesheetUrl },
 ];
 
-export default function App() {
+export async function loader({ request }: DataFunctionArgs) {
+	const csrf = await getCraftCsrfToken();
+	const userId = await getUserId(request);
+
+	return json({ csrf, userId });
+}
+
+function App({ userId }: { userId: string | null }) {
 	return (
 		<html lang="en">
 			<head>
@@ -34,11 +45,9 @@ export default function App() {
 				<Links />
 			</head>
 			<body>
-				<Navbar />
-
-				<Outlet />
-
 				<EpicProgress />
+				<Outlet context={{ userId }} />
+
 				<ScrollRestoration />
 				<Scripts />
 				<LiveReload />
@@ -48,3 +57,15 @@ export default function App() {
 		</html>
 	);
 }
+
+function AppWithProviders() {
+	const { csrf, userId } = useLoaderData<typeof loader>();
+
+	return (
+		<AuthenticityTokenProvider token={csrf.csrfTokenValue}>
+			<App userId={userId} />
+		</AuthenticityTokenProvider>
+	);
+}
+
+export default withSentry(AppWithProviders);

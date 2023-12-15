@@ -4,17 +4,17 @@ import Layout from '~/components/layout';
 
 export const meta: MetaFunction = () => {
 	return [
-		{ title: 'CDL Online | Contact Us' },
+		{ title: 'Business | CDL Online' },
 		{ name: 'description', content: 'Build CDL Online with Remix!' },
 	];
 };
 
-export default function ContactUs() {
+export default function FAQ() {
 	return (
 		<Layout>
 			<Container>
 				<div className="flex items-center justify-center w-full h-full">
-					<h1>Contact Us</h1>
+					<h1>For Business</h1>
 				</div>
 			</Container>
 		</Layout>

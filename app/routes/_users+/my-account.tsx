@@ -1,6 +1,9 @@
+import { DataFunctionArgs, json } from '@remix-run/node';
 import { NavLink, Outlet, useLocation } from '@remix-run/react';
+
 import Container from '~/components/container';
 import Layout from '~/components/layout';
+import { requireLogin } from '~/utils/auth.server';
 
 // Important Notes:
 // underscore `_` on the file/folder means that the child routes are not nested
@@ -10,6 +13,12 @@ const cssActiveLink = (active: Boolean) => {
 	return `text-[16px] text-[#161616] text-left py-[18px] relative flex items-center ${
 		active ? 'border-b-2 border-[#0F62FE] mb-[-2px] font-medium' : ''
 	}`;
+};
+
+export const loader = async ({ request }: DataFunctionArgs) => {
+	await requireLogin(request);
+
+	return json({});
 };
 
 export default function MyAccount() {

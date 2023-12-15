@@ -2,20 +2,25 @@ import { useNavigation } from '@remix-run/react';
 import { useEffect, useRef, useState } from 'react';
 import { useSpinDelay } from 'spin-delay';
 import { cn } from '~/utils/misc';
-import { Icon } from './ui/icon';
+import LoadingBar from 'react-top-loading-bar';
 
 function EpicProgress() {
 	const transition = useNavigation();
 	const busy = transition.state !== 'idle';
 	const delayedPending = useSpinDelay(busy, {
-		delay: 600,
+		delay: 0,
 		minDuration: 400,
 	});
+
 	const ref = useRef<HTMLDivElement>(null);
 	const [animationComplete, setAnimationComplete] = useState(true);
+	const [progress, setProgress] = useState(0);
 
 	useEffect(() => {
 		if (!ref.current) return;
+
+		setProgress(progress + 20);
+
 		if (delayedPending) setAnimationComplete(false);
 
 		const animationPromises = ref.current
@@ -23,7 +28,10 @@ function EpicProgress() {
 			.map(({ finished }) => finished);
 
 		Promise.allSettled(animationPromises).then(() => {
-			if (!delayedPending) setAnimationComplete(true);
+			if (!delayedPending) {
+				setAnimationComplete(true);
+				setProgress(100);
+			}
 		});
 	}, [delayedPending]);
 
@@ -49,12 +57,7 @@ function EpicProgress() {
 			/>
 			{delayedPending && (
 				<div className="absolute flex items-center justify-center">
-					<Icon
-						name="update"
-						size="md"
-						className="m-1 animate-spin text-foreground"
-						aria-hidden
-					/>
+					<LoadingBar color="#0f62fe" progress={progress} />
 				</div>
 			)}
 		</div>
