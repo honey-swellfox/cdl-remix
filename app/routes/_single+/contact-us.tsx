@@ -1,7 +1,13 @@
-import type { DataFunctionArgs, MetaFunction } from '@remix-run/node';
-import { Form } from '@remix-run/react';
-import Container from '~/components/container';
+import {
+	json,
+	type DataFunctionArgs,
+	type MetaFunction,
+} from '@remix-run/node';
+import { Form, useActionData } from '@remix-run/react';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+
 import Layout from '~/components/layout';
+import { csrfTokenKey } from '~/utils/csrf.server';
 
 export const meta: MetaFunction = () => {
 	return [
@@ -10,32 +16,28 @@ export const meta: MetaFunction = () => {
 	];
 };
 
-// export async function loaderx() {
-// 	const response = await fetch(
-// 		'http://cdl-training.cs/actions/users/session-info'
-// 	);
-
-// 	const movies = await response.json();
-// 	console.log(movies);
-// }
-
-export async function actionx({ request }: DataFunctionArgs) {
+export async function action({ request }: DataFunctionArgs) {
 	const formData = await request.formData();
 
-	const res = await fetch('http://cdl-training.cs/guest-entries/save', {
+	const response = await fetch('http://cdl-training.cs/guest-entries/save', {
+		headers: {
+			Accept: 'application/json',
+		},
 		method: 'POST',
 		body: formData,
 	});
 
-	const resData = await res.json();
-
-	// console.log(resData);
+	return json(await response.json());
 }
 
 export default function ContactUs() {
+	const actionData = useActionData<typeof action>();
+
+	console.log({ actionData });
+
 	return (
 		<Layout>
-			<div className="bg-[url('/img/backgrounds/contact.jpg')] bg-cover w-full h-full bg-no-repeat px-[15px] md:px-0 py-[20px] sm:py-[90px]">
+			<div className="bg-[url('/img/backgrounds/contact.jpg')] bg-cover w-full h-full bg-no-repeat px-[15px] md:px-0 py-[20px] sm:py-[90px] mb-[-50px]">
 				<div className="container mx-auto  flex justify-center w-full h-full">
 					<div className="w-full md:w-[480px] bg-white py-[30px] z-[10] px-[30px]">
 						<h1 className="text-[32px] text-[#161616] font-normal mb-[10px]">
@@ -51,11 +53,14 @@ export default function ContactUs() {
 							page? Most questions can be answered there.
 						</p>
 						<Form method="POST">
+							<AuthenticityTokenInput name="CRAFT_CSRF_TOKEN" />
+
 							<input
 								type="hidden"
 								name="action"
 								value="guest-entries/save"
 							/>
+
 							<input type="hidden" name="sectionId" value="1" />
 							<input type="hidden" name="enabled" value="1" />
 							<input
@@ -227,7 +232,7 @@ export default function ContactUs() {
 										name="fields[inquiryType]"
 										id="inquiry_business"
 										value="business"
-										checked={true}
+										// checked={true}
 									/>
 									Business
 								</label>

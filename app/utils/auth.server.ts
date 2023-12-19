@@ -1,7 +1,9 @@
 import { redirect } from '@remix-run/node';
-import { sessionKey, sessionStorage } from './session.server';
+import { sessionUserIdKey, authSessionStorage } from './session.server';
 import { safeRedirect } from 'remix-utils/safe-redirect';
 import { combineHeaders } from './misc';
+import { fetchFromGraphQL } from './graphql.server';
+import { USER_QUERY } from './graphql.queries';
 
 export const actionUrl = process.env.CRAFT_ACTION_URL;
 
@@ -23,14 +25,28 @@ export async function requireLogin(request: Request) {
 }
 
 export async function getUserId(request: Request) {
-	const session = await sessionStorage.getSession(
+	const session = await authSessionStorage.getSession(
 		request.headers.get('Cookie')
 	);
 
-	return session.get(sessionKey);
+	return session.get(sessionUserIdKey);
 }
 
-export async function getCurrentUser({
+export async function getCurrentUser(id: string | number | undefined) {
+	if (!id) {
+		return null;
+	}
+
+	const response = await fetchFromGraphQL(USER_QUERY, {
+		id,
+	});
+
+	const { data } = await response.json();
+
+	return data.user;
+}
+
+export async function getUserSession({
 	username,
 	pw,
 }: {
@@ -45,45 +61,6 @@ export async function getCurrentUser({
 		},
 		credentials: 'include',
 	});
-
-	return await response.json();
-}
-
-// export async function login(formData: FormData) {
-// 	checkEnv();
-
-// 	const response = await fetch(
-// 		`http://cdl-training.cs/actions/cdl/frontend/get-login-user-group`,
-// 		{
-// 			headers: {
-// 				Accept: 'application/json',
-// 			},
-// 			method: 'POST',
-// 			body: formData,
-// 		}
-// 	);
-
-// 	return await response.json();
-// }
-
-export function checkEnv() {
-	if (!process.env.CRAFT_ACTION_URL) {
-		throw new Error('CRAFT_ACTION_URL is required');
-	}
-}
-
-export async function getUserSession() {
-	checkEnv();
-
-	const response = await fetch(
-		`${process.env.CRAFT_ACTION_URL}/users/session-info`,
-		{
-			method: 'GET',
-			headers: {
-				Accept: 'application/json',
-			},
-		}
-	);
 
 	return await response.json();
 }
@@ -103,13 +80,13 @@ export async function getCraftCsrfToken() {
 }
 
 export async function logout({ request }: { request: Request }) {
-	const session = await sessionStorage.getSession(
+	const session = await authSessionStorage.getSession(
 		request.headers.get('Cookie')
 	);
 
 	return redirect('/login', {
 		headers: {
-			'Set-Cookie': await sessionStorage.destroySession(session),
+			'Set-Cookie': await authSessionStorage.destroySession(session),
 		},
 	});
 }

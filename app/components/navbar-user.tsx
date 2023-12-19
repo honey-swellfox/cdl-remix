@@ -1,9 +1,13 @@
-import { Form, Link, NavLink, useOutletContext } from '@remix-run/react';
+import { Link, NavLink, useOutletContext } from '@remix-run/react';
+
 import { cssActiveNavLink } from '~/utils/helpers';
 import ButtonLogout from './button-logout';
 
 export default function NavbarUser() {
-	const { userId }: { userId: string | null } = useOutletContext();
+	const { userId, user }: { userId: string | null; user: any } =
+		useOutletContext();
+
+	console.log({ user });
 
 	return (
 		<header>
@@ -73,7 +77,12 @@ export default function NavbarUser() {
 							</NavLink>
 						</div>
 					</div>
-					<ButtonLogout />
+					<div className="flex items-center">
+						<span className="text-[#f4f4f4] text-[14px] mr-[15px]">
+							{user.fullName}
+						</span>
+						<ButtonLogout />
+					</div>
 				</div>
 			</nav>
 		</header>

@@ -10,8 +10,9 @@ import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import Container from '~/components/container';
 import Layout from '~/components/layout';
 import IconArrowRight from '~/components/ui/icons/icon-arrow-right';
-import { getCurrentUser, requireAnonymous } from '~/utils/auth.server';
-import { sessionStorage } from '~/utils/session.server';
+import { getUserSession, requireAnonymous } from '~/utils/auth.server';
+import { csrfTokenKey } from '~/utils/csrf.server';
+import { authSessionStorage, sessionUserIdKey } from '~/utils/session.server';
 
 export const meta: MetaFunction = () => {
 	return [
@@ -44,17 +45,18 @@ export async function action({ request }: DataFunctionArgs) {
 		const username = formData.get('loginName');
 		const pw = formData.get('password');
 
-		const { id } = await getCurrentUser({ username, pw });
+		const user = await getUserSession({ username, pw });
 
-		const session = await sessionStorage.getSession(
-			request.headers.get('cookie')
+		const session = await authSessionStorage.getSession(
+			request.headers.get('Cookie')
 		);
 
-		session.set('userId', id);
+		session.set(sessionUserIdKey, user.id);
+		session.set('currentUser', user);
 
 		return redirect('/my-courses', {
 			headers: {
-				'Set-Cookie': await sessionStorage.commitSession(session),
+				'Set-Cookie': await authSessionStorage.commitSession(session),
 			},
 		});
 	}
@@ -84,7 +86,7 @@ export default function Login() {
 								Login below to access your purchased courses.
 							</p>
 							<Form className="bg-white w-full" method="POST">
-								<AuthenticityTokenInput name="CRAFT_CSRF_TOKEN" />
+								<AuthenticityTokenInput name={csrfTokenKey} />
 								<input
 									type="hidden"
 									name="loginType"

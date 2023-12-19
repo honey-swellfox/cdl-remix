@@ -16,8 +16,12 @@ import tailwindStylesheetUrl from './styles/tailwind.css';
 import fontStylesheetUrl from './styles/fonts.css';
 import Footer from './components/footer';
 import { EpicProgress } from './components/progress-bar';
-import { getCraftCsrfToken, getUserId } from './utils/auth.server';
-import Navbar from './components/navbar';
+import {
+	getCraftCsrfToken,
+	getUserId,
+	getCurrentUser,
+} from './utils/auth.server';
+import { csrfCookieStorage, csrfTokenKey } from './utils/csrf.server';
 
 export const links: LinksFunction = () => [
 	...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
@@ -28,11 +32,25 @@ export const links: LinksFunction = () => [
 export async function loader({ request }: DataFunctionArgs) {
 	const csrf = await getCraftCsrfToken();
 	const userId = await getUserId(request);
+	const user = await getCurrentUser(userId);
 
-	return json({ csrf, userId });
+	const session = await csrfCookieStorage.getSession(
+		request.headers.get('Cookie')
+	);
+
+	session.set(csrfTokenKey, csrf.csrfTokenValue);
+
+	return json(
+		{ csrf, userId, user },
+		{
+			headers: {
+				'Set-Cookie': await csrfCookieStorage.commitSession(session),
+			},
+		}
+	);
 }
 
-function App({ userId }: { userId: string | null }) {
+function App({ userId, user }: { userId: string | null; user: any }) {
 	return (
 		<html lang="en">
 			<head>
@@ -46,7 +64,7 @@ function App({ userId }: { userId: string | null }) {
 			</head>
 			<body>
 				<EpicProgress />
-				<Outlet context={{ userId }} />
+				<Outlet context={{ userId, user }} />
 
 				<ScrollRestoration />
 				<Scripts />
@@ -59,11 +77,13 @@ function App({ userId }: { userId: string | null }) {
 }
 
 function AppWithProviders() {
-	const { csrf, userId } = useLoaderData<typeof loader>();
+	const loaderData = useLoaderData<typeof loader>();
+
+	const { csrf, userId, user } = loaderData;
 
 	return (
 		<AuthenticityTokenProvider token={csrf.csrfTokenValue}>
-			<App userId={userId} />
+			<App userId={userId} user={user} />
 		</AuthenticityTokenProvider>
 	);
 }

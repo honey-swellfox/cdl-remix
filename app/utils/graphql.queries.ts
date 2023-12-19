@@ -407,3 +407,12 @@ export const STUDENT_COURSES = gql`
 		}
 	}
 `;
+
+export const USER_QUERY = gql`
+	query User($id: [QueryArgument]) {
+		user(id: $id) {
+			id
+			fullName
+		}
+	}
+`;

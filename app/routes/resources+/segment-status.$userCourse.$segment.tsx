@@ -1,5 +1,6 @@
 import { json } from '@remix-run/node';
 import { getCraftCsrfToken } from '~/utils/auth.server';
+import { csrfTokenKey } from '~/utils/csrf.server';
 
 export async function loader({ params }: { params: any }) {
 	const csrf = await getCraftCsrfToken();
@@ -7,7 +8,7 @@ export async function loader({ params }: { params: any }) {
 	let formData = new FormData();
 	formData.append('userCourseId', params.userCourse);
 	formData.append('segmentId', params.segment);
-	formData.append('CRAFT_CSRF_TOKEN', csrf.csrfTokenValue);
+	formData.append(csrfTokenKey, csrf.csrfTokenValue);
 
 	const response = await fetch(
 		'http://cdl-training.cs/actions/cdl/users/check-segment-status',

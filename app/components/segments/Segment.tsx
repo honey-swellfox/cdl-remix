@@ -79,6 +79,5 @@ export default function Segment({ entry }: { entry: any }) {
 		}
 	);
 
-	console.log({ contents });
 	return <> {contents.length > 1 ? contents : <>{contents}</>}</>;
 }

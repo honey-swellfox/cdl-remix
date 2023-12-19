@@ -1,10 +1,10 @@
-import { createCookieSessionStorage } from '@remix-run/node';
+import { createCookieSessionStorage } from '@remix-run/node'; // or cloudflare/deno
 
-export const sessionUserIdKey = 'userId';
+export const csrfTokenKey = 'CRAFT_CSRF_TOKEN';
 
-export const authSessionStorage = createCookieSessionStorage({
+export const csrfCookieStorage = createCookieSessionStorage({
 	cookie: {
-		name: 'cdlremix_session',
+		name: csrfTokenKey,
 		sameSite: 'none',
 		path: '/',
 		httpOnly: true,
@@ -16,9 +16,9 @@ export const authSessionStorage = createCookieSessionStorage({
 
 // we have to do this because every time you commit the session you overwrite it
 // so we store the expiration time in the cookie and reset it every time we commit
-const originalCommitSession = authSessionStorage.commitSession;
+const originalCommitSession = csrfCookieStorage.commitSession;
 
-Object.defineProperty(authSessionStorage, 'commitSession', {
+Object.defineProperty(csrfCookieStorage, 'commitSession', {
 	value: async function commitSession(
 		...args: Parameters<typeof originalCommitSession>
 	) {
